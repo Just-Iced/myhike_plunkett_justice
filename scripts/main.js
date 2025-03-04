@@ -15,3 +15,14 @@ function getNameFromAuth() {
     });
 }
 getNameFromAuth();
+
+function readQuote(day) {
+    db.collection("quotes").doc(day)
+        .onSnapshot(dayDoc => {
+            console.log("Current doc data: " + dayDoc.data());
+            document.getElementById("quote-goes-here").innerHTML = dayDoc.data().quote;
+        }, (error) => {
+            console.log("Error callin onSnapshot", error);
+        });
+}
+readQuote("tuesday");

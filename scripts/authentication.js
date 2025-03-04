@@ -2,9 +2,23 @@ var ui = new firebaseui.auth.AuthUI(firebase.auth());
 var uiConfig = {
     callbacks: {
         signInSuccessWithAuthResult: function (authResult, redirectUrl) {
-            // Return type determines whether we continue the redirect automatically
-            // or whether we leave that to the developer to handdle
-            return true;
+            var user = authResult.user;
+            if (authResult.additionalUserInfo.isNewUser) {
+                db.collection("users").doc(user.uid).set({
+                    name: user.displayName,
+                    email: user.email,
+                    country: "Canada",
+                    school: "BCIT"
+                }).then(function () {
+                    console.log("New user added to firestore");
+                    window.location.assign("main.html");
+                }).catch(function (error) {
+                    console.log("Error adding new user: " + error);
+                });
+            } else {
+                return true;
+            }
+            return false
         },
         uiShown: function () {
             // The widget is rendered
