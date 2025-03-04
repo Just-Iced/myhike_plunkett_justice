@@ -77,16 +77,18 @@ function displayCardsDynamically(collection) {
         .then(allHikes => {
             var i = 1;
             allHikes.forEach(doc => {
-                var title = doc.data().name;
-                var details = doc.data().details;
-                var hikeCode = doc.data().code;
-                var hikeLength = doc.data().length;
+                let title = doc.data().name;
+                let details = doc.data().details;
+                let hikeCode = doc.data().code;
+                let hikeLength = doc.data().length;
+                let docID = doc.id;
                 let newCard = cardTemplate.content.cloneNode(true);
 
                 newCard.querySelector(".card-title").innerHTML = title;
                 newCard.querySelector(".card-length").innerHTML = hikeLength + "km";
                 newCard.querySelector(".card-text").innerHTML = details;
                 newCard.querySelector(".card-image").src = `./images/${hikeCode}.jpg`;
+                newCard.querySelector("a").href = `eachHike.html?docID=${docID}`
             
                 newCard.querySelector('.card-title').setAttribute("id", "ctitle" + i);
                 newCard.querySelector('.card-text').setAttribute("id", "ctext" + i);
