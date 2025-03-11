@@ -30,3 +30,13 @@
   margin: 0 auto;
   /* Centers the circle horizontally */
 }
+
+.card-container {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.card {
+  width: 45%;
+  margin: 2%;
+}
