@@ -1,3 +1,27 @@
+var currentUser;
+
+function doAll() {
+    firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+            currentUser = db.collection("users").doc(user.uid);
+            console.log(currentUser);
+
+            const weekday = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            const d = new Date();
+            let day = weekday[d.getDay()];
+
+            readQuote(day);
+            insertNameFromFirestore();
+            displayCardsDynamically("hikes");
+        } else {
+            console.log("No users is signed in");
+            window.location.href = "login.html";
+        }
+    });
+}
+
+doAll();
+
 function getNameFromAuth() {
     firebase.auth().onAuthStateChanged(user => {
         // Checks if a user is signed in
@@ -16,6 +40,14 @@ function getNameFromAuth() {
 }
 getNameFromAuth();
 
+function insertNameFromFirestore() {
+    currentUser.get().then((userDoc) => {
+        var userName = userDoc.data().name;
+        console.log(userName);
+        $("#name-goes-here").text(userName);
+    });
+}
+
 function readQuote(day) {
     db.collection("quotes").doc(day)
         .onSnapshot(dayDoc => {
@@ -25,7 +57,7 @@ function readQuote(day) {
             console.log("Error callin onSnapshot", error);
         });
 }
-readQuote("tuesday");
+//readQuote("tuesday");
 
 function writeHikes() {
     var hikeRefs = db.collection("hikes");
@@ -85,7 +117,9 @@ function displayCardsDynamically(collection) {
                 let newCard = cardTemplate.content.cloneNode(true);
 
                 newCard.querySelector(".card-title").innerHTML = title;
-                newCard.querySelector(".card-length").innerHTML = hikeLength + "km";
+                newCard.querySelector(".card-length").innerHTML = "Length: " + hikeLength + "km<br>"
+                                                                + "Duration: " + doc.data().hike_time + "min<br>"
+                                                                + "Last updated: " + doc.data().last_updated.toDate().toLocaleDateString();
                 newCard.querySelector(".card-text").innerHTML = details;
                 newCard.querySelector(".card-image").src = `./images/${hikeCode}.jpg`;
                 newCard.querySelector("a").href = `eachHike.html?docID=${docID}`
@@ -93,7 +127,16 @@ function displayCardsDynamically(collection) {
                 newCard.querySelector('.card-title').setAttribute("id", "ctitle" + i);
                 newCard.querySelector('.card-text').setAttribute("id", "ctext" + i);
                 newCard.querySelector('.card-image').setAttribute("id", "cimage" + i);
-            
+                newCard.querySelector("i").id = "save-" + docID;
+                newCard.querySelector("i").onclick = () => saveBookmark(docID);
+
+                currentUser.get().then(userDoc => {
+                    let bookmarks = userDoc.data().bookmarks;
+                    if (bookmarks.includes(docID)) {
+                       document.getElementById('save-' + docID).innerText = 'bookmark';
+                    }
+              })
+
                 document.getElementById(collection + "-go-here").appendChild(newCard);
 
                 i++;
@@ -102,3 +145,31 @@ function displayCardsDynamically(collection) {
 }
 
 displayCardsDynamically("hikes");
+
+function saveBookmark(hikeDocID) {
+    currentUser.get().then((userDoc) => {
+        if (userDoc.data().bookmarks.includes(hikeDocID)) {
+            currentUser.update({
+                bookmarks: firebase.firestore.FieldValue.arrayRemove(hikeDocID)
+            })
+            .then(() => {
+                console.log("Bookmark has been removed for " + hikeDocID);
+                let iconID = "save-" + hikeDocID;
+        
+                document.getElementById(iconID).innerText = "bookmark_border";
+            });
+        } else {
+            currentUser.update({
+                bookmarks: firebase.firestore.FieldValue.arrayUnion(hikeDocID)
+            })
+            .then(() => {
+                console.log("Bookmark has been saved for " + hikeDocID);
+                let iconID = "save-" + hikeDocID;
+        
+                document.getElementById(iconID).innerText = "bookmark";
+            });
+        }
+            
+    })
+    
+}
