@@ -42,7 +42,7 @@ getNameFromAuth();
 
 function insertNameFromFirestore() {
     currentUser.get().then((userDoc) => {
-        var userName = userDoc.data().name;
+        let userName = userDoc.data().name;
         console.log(userName);
         $("#name-goes-here").text(userName);
     });
